@@ -41,18 +41,18 @@ int main () {
 
         // // print out every command token-by-token on individual lines
         // // prints to cerr to avoid influencing autograder
-        // for (auto cmd : tknr.commands) {
-        //     for (auto str : cmd->args) {
-        //         cerr << "|" << str << "| ";
-        //     }
-        //     if (cmd->hasInput()) {
-        //         cerr << "in< " << cmd->in_file << " ";
-        //     }
-        //     if (cmd->hasOutput()) {
-        //         cerr << "out> " << cmd->out_file << " ";
-        //     }
-        //     cerr << endl;
-        // }
+        for (auto cmd : tknr.commands) {
+            for (auto str : cmd->args) {
+                cerr << "|" << str << "| ";
+            }
+            if (cmd->hasInput()) {
+                cerr << "in< " << cmd->in_file << " ";
+            }
+            if (cmd->hasOutput()) {
+                cerr << "out> " << cmd->out_file << " ";
+            }
+            cerr << endl;
+        }
 
         // fork to create child
         pid_t pid = fork();
@@ -63,9 +63,18 @@ int main () {
 
         if (pid == 0) {  // if child, exec to run command
             // run single commands with no arguments
-            char* args[] = {(char*) tknr.commands.at(0)->args.at(0).c_str(), nullptr};
+            //char* args[] = {(char*) tknr.commands.at(0)->args.at(0).c_str(),nullptr};
+            vector<string>& arguments = tknr.commands.at(0)->args;
+            vector<char*> args;
 
-            if (execvp(args[0], args) < 0) {  // error check
+            for (const string& arg : arguments) {
+                args.push_back((char*)arg.c_str());  // Convert string to gross char* 
+            }
+
+            // Put nullptr at end to make execvp happy
+            args.push_back(nullptr);
+
+            if (execvp(args[0], args.data()) < 0) {  //.data() is a beautiful beautiful thing
                 perror("execvp");
                 exit(2);
             }
